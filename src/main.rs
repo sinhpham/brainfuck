@@ -4,8 +4,10 @@ use std::collections::HashMap;
 
 fn main() {
     let ret = run(
-">++++++++[-<+++++++++>]<.>>+>-[+]++>++>+++[>[->+++<<+++>]<<]>-----.>->
-+++..+++.>-.<<+[>[+>+]>>]<--------------.>>.+++.------.--------.>+.>+.");
+">++[<+++++++++++++>-]<[[>+>+<<-]>[<+>-]++++++++
+[>++++++++<-]>.[-]<<>++++++++++[>++++++++++[>++
+++++++++[>++++++++++[>++++++++++[>++++++++++[>+
++++++++++[-]<-]<-]<-]<-]<-]<-]<-]++++++++++.");
 
     println!("Program finished, ret = {:?}", ret);
 }
@@ -26,7 +28,6 @@ enum BfCommand {
 #[derive(Debug)]
 struct BfProgram {
     commands: BfCommands,
-    ins_ptr: usize,
     data: Vec<u8>,
     data_ptr: usize,
 }
@@ -45,12 +46,7 @@ impl FromStr for BfCommands {
         let mut idx_offset = 0; // Ignore all non-command characters.
         for (idx, ch) in s.chars().enumerate() {
             match ch {
-                '>' => (),
-                '<' => (),
-                '+' => (),
-                '-' => (),
-                '.' => (),
-                ',' => (),
+                '>' | '<' | '+' | '-' | '.' | ',' => (),
                 '[' => {
                     open_locations.push(idx - idx_offset);
                 },
@@ -92,8 +88,10 @@ impl FromStr for BfCommands {
 impl BfProgram {
     fn run(& mut self) {
         let BfCommands(ref commands) = self.commands;
-        while self.ins_ptr < commands.len() {
-            let curr_command = &commands[self.ins_ptr];
+        let mut ins_ptr = 0;
+        
+        while ins_ptr < commands.len() {
+            let curr_command = &commands[ins_ptr];
             // Ensure data.
             while self.data.len() <= self.data_ptr {
                 self.data.push(0);
@@ -118,16 +116,16 @@ impl BfProgram {
                 },
                 BfCommand::BeginLoop{end_ptr} => {
                     if self.data[self.data_ptr] == 0  {
-                        self.ins_ptr = end_ptr;
+                        ins_ptr = end_ptr;
                     }
                 },
                 BfCommand::EndLoop{begin_ptr} => {
                     if self.data[self.data_ptr] != 0  {
-                        self.ins_ptr = begin_ptr;
+                        ins_ptr = begin_ptr;
                     }
                 },
             }
-            self.ins_ptr += 1;
+            ins_ptr += 1;
         }
     }
 }
@@ -137,7 +135,6 @@ fn run(input: &str) -> Result<(), String> {
     
     let mut program = BfProgram {
         commands: commands,
-        ins_ptr : 0,
         data: Vec::new(),
         data_ptr: 0 };
     
